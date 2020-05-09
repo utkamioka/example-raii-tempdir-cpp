@@ -29,8 +29,9 @@ namespace /* private functions */ {
 
 // Do not throw exception, because its use in building exceptions.
 std::string get_real_path(const char *path) noexcept {
-    char buffer[PATH_MAX];
-    return std::string(realpath(path, buffer) ? buffer : path);
+    // *NOT GOOD* to specify buffer to 2nd argument of realpath(), as some environments PATH_MAX is not constant.
+    auto p = std::unique_ptr<char, ptr_func_free>(realpath(path, nullptr), std::free);
+    return std::string(p ? p.get() : path);
 }
 
 }  // namespace *private functions*
@@ -94,7 +95,7 @@ void remove_tree(const char *path) {
 
 
 TemporaryDirectory::TemporaryDirectory(const char *template_) {
-    strncpy(path_, template_, PATH_MAX);
+    strncpy(path_, template_, sizeof(path_) - 1);
     if (mkdtemp(path_) == nullptr) {
         throw std::system_error(errno, std::generic_category(), template_);
     }
