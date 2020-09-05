@@ -9,7 +9,8 @@
 namespace filesystem_utils {
 
 std::string get_current_working_directory();
-
+std::string change_directory(const char *path);
+std::string make_temporary_directory(const char *path);
 void remove_tree(const char *path);
 
 class TemporaryDirectory {

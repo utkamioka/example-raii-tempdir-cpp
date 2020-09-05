@@ -1,6 +1,6 @@
 
-# Created by https://www.gitignore.io/api/c,osx,git,vim,c++,linux,emacs,windows,visualstudio,jetbrains+all,visualstudiocode
-# Edit at https://www.gitignore.io/?templates=c,osx,git,vim,c++,linux,emacs,windows,visualstudio,jetbrains+all,visualstudiocode
+# Created by https://www.toptal.com/developers/gitignore/api/c,git,vim,osx,c++,emacs,linux,windows,visualstudio,jetbrains+all,visualstudiocode,cmake
+# Edit at https://www.toptal.com/developers/gitignore?templates=c,git,vim,osx,c++,emacs,linux,windows,visualstudio,jetbrains+all,visualstudiocode,cmake
 
 ### C ###
 # Prerequisites
@@ -75,6 +75,23 @@ dkms.conf
 
 # Executables
 
+### CMake ###
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+### CMake Patch ###
+# External projects
+*-prefix/
+
 ### Emacs ###
 # -*- mode: gitignore; -*-
 *~
@@ -142,7 +159,7 @@ flycheck_*.el
 *_REMOTE_*.txt
 
 ### JetBrains+all ###
-# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and WebStorm
+# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
 # User-specific stuff
@@ -172,6 +189,9 @@ flycheck_*.el
 # When using Gradle or Maven with auto-import, you should exclude module files,
 # since they will be recreated, and may cause churn.  Uncomment if using
 # auto-import.
+# .idea/artifacts
+# .idea/compiler.xml
+# .idea/jarRepositories.xml
 # .idea/modules.xml
 # .idea/*.iml
 # .idea/modules
@@ -272,6 +292,7 @@ Temporary Items
 ### Vim ###
 # Swap
 [._]*.s[a-v][a-z]
+!*.svg  # comment out if you don't need vector files
 [._]*.sw[a-p]
 [._]s[a-rt-v][a-z]
 [._]ss[a-gi-z]
@@ -283,15 +304,10 @@ Sessionx.vim
 
 # Temporary
 .netrwhist
-
 # Auto-generated tag files
 tags
-
 # Persistent undo
 [._]*.un~
-
-# Coc configuration directory
-.vim
 
 ### VisualStudioCode ###
 .vscode/*
@@ -299,6 +315,7 @@ tags
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+*.code-workspace
 
 ### VisualStudioCode Patch ###
 # Ignore all local history of files
@@ -362,6 +379,7 @@ bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
+[Ll]ogs/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
@@ -400,6 +418,7 @@ StyleCopReport.xml
 *_i.c
 *_p.c
 *_h.h
+*.meta
 *.iobj
 *.ipdb
 *.pgc
@@ -454,9 +473,6 @@ _ReSharper*/
 *.[Rr]e[Ss]harper
 *.DotSettings.user
 
-# JustCode is a .NET coding add-in
-.JustCode
-
 # TeamCity is a build add-in
 _TeamCity*
 
@@ -466,6 +482,9 @@ _TeamCity*
 # AxoCover is a Code Coverage Tool
 .axoCover/*
 !.axoCover/settings.json
+
+# Coverlet is a free, cross platform Code Coverage Tool
+coverage*[.json, .xml, .info]
 
 # Visual Studio code coverage results
 *.coverage
@@ -675,4 +694,7 @@ healthchecksdb
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
 
-# End of https://www.gitignore.io/api/c,osx,git,vim,c++,linux,emacs,windows,visualstudio,jetbrains+all,visualstudiocode
+# Ionide (cross platform F# VS Code tools) working folder
+.ionide/
+
+# End of https://www.toptal.com/developers/gitignore/api/c,git,vim,osx,c++,emacs,linux,windows,visualstudio,jetbrains+all,visualstudiocode,cmake

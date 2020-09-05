@@ -1,7 +1,9 @@
+#include <sstream>
 #include <string>
-#include <unistd.h>
 #include <cstring>
 #include <memory>
+#include <stdexcept>
+#include <unistd.h>
 #include <dirent.h>
 #include "filesystem_utils.h"
 
@@ -9,17 +11,17 @@ namespace filesystem_utils {
 
 namespace /* private variables */ {
 
-using type_func_free = void(void *);
-using ptr_func_free = type_func_free *;
+using FuncFree = void(void *);
+using PtrFuncFree = FuncFree *;
 
 #ifndef DEBUG
-ptr_func_free str_free = std::free;
+PtrFuncFree str_free = std::free;
 #else
 void debug_str_free(void *ptr) {
     std::cerr << "free(" << (void *) ptr << ") - " << (char *) ptr << std::endl;
     std::free(ptr);
 }
-ptr_func_free str_free = debug_str_free;
+PtrFuncFree str_free = debug_str_free;
 #endif //DEBUG
 
 }  // namespace *private variables*
@@ -28,9 +30,9 @@ ptr_func_free str_free = debug_str_free;
 namespace /* private functions */ {
 
 // Do not throw exception, because its use in building exceptions.
-std::string get_real_path(const char *path) noexcept {
+std::string _get_real_path(const char *path) noexcept {
     // *NOT GOOD* to specify buffer to 2nd argument of realpath(), as some environments PATH_MAX is not constant.
-    auto p = std::unique_ptr<char, ptr_func_free>(realpath(path, nullptr), std::free);
+    auto p = std::unique_ptr<char, PtrFuncFree>(realpath(path, nullptr), std::free);
     return std::string(p ? p.get() : path);
 }
 
@@ -38,13 +40,37 @@ std::string get_real_path(const char *path) noexcept {
 
 
 std::string get_current_working_directory() {
-    auto cwd = std::unique_ptr<char, ptr_func_free>(get_current_dir_name(), str_free);
+    auto cwd = std::unique_ptr<char, PtrFuncFree>(get_current_dir_name(), str_free);
     if (!cwd) {
         throw std::system_error(errno, std::generic_category());
     }
     return std::string(cwd.get());
 }
 
+std::string change_directory(const char *path) {
+    char buffer[PATH_MAX];
+    if (getcwd(buffer, PATH_MAX) == nullptr) {
+        throw std::system_error(errno, std::generic_category());
+    }
+    if (chdir(path) != 0) {
+        throw std::system_error(errno, std::generic_category(), _get_real_path(path));
+    }
+    return std::string(buffer);
+}
+
+std::string make_temporary_directory(const char *path) {
+    char _template[PATH_MAX];
+    const auto len = std::snprintf(_template, PATH_MAX, "%s.XXXXXX", path);
+    if (len < 0 || len >= PATH_MAX) {
+        std::stringstream ss;
+        ss << path << ": too long. (limit=" << (PATH_MAX - std::strlen(".XXXXXX")) << ")";
+        throw std::runtime_error(ss.str());
+    }
+    if (mkdtemp(_template) == nullptr) {
+        throw std::system_error(errno, std::generic_category(), _template);
+    }
+    return _template;
+}
 
 void remove_tree(const char *path) {
 #ifdef DEBUG
@@ -57,22 +83,11 @@ void remove_tree(const char *path) {
     auto is_current_dir = [](const char *path) { return strcmp(path, ".") == 0; };
     auto is_parent_dir = [](const char *path) { return strcmp(path, "..") == 0; };
 
-    auto change_directory = [](const char *path) {
-        char buffer[PATH_MAX];
-        if (getcwd(buffer, PATH_MAX) == nullptr) {
-            throw std::system_error(errno, std::generic_category());
-        }
-        if (chdir(path) != 0) {
-            throw std::system_error(errno, std::generic_category(), get_real_path(path));
-        }
-        return std::string(buffer);
-    };
-
-    DIR *dir = nullptr;
+    DIR *dir;
     if ((dir = opendir(path)) != nullptr) {
         auto current_dir = change_directory(path);
 
-        struct dirent *entry = nullptr;
+        struct dirent *entry;
         while ((entry = readdir(dir)) != nullptr) {
             if (!is_current_dir(entry->d_name) and !is_parent_dir(entry->d_name)) {
                 remove_tree(entry->d_name);
@@ -85,11 +100,11 @@ void remove_tree(const char *path) {
         if (errno == ENOTDIR) {
             // not a directory, not an error. just simply remove it.
         } else {
-            throw std::system_error(errno, std::generic_category(), get_real_path(path));
+            throw std::system_error(errno, std::generic_category(), _get_real_path(path));
         }
     }
     if (remove(path) != 0) {
-        throw std::system_error(errno, std::generic_category(), get_real_path(path));
+        throw std::system_error(errno, std::generic_category(), _get_real_path(path));
     }
 }
 
@@ -118,7 +133,7 @@ const char *TemporaryDirectory::path() const noexcept {
 
 ChangeDirectory::ChangeDirectory(const char *path) : cwd_(get_current_working_directory()), path_{path} {
     if (chdir(path) != 0) {
-        throw std::system_error(errno, std::generic_category(), get_real_path(path));
+        throw std::system_error(errno, std::generic_category(), _get_real_path(path));
     }
 }
 

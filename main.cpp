@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <sys/stat.h>
-#include "src/filesystem_utils.h"
+#include "filesystem_utils.h"
 
 
 int main() {
