@@ -5,12 +5,15 @@
 #include <cstring>
 #include <unistd.h>
 #include <climits>
+#include <set>
 
 namespace filesystem_utils {
 
+bool exists(const char *path);
 std::string get_current_working_directory();
 std::string change_directory(const char *path);
 std::string make_temporary_directory(const char *path);
+std::set<std::string> list(const char *path);
 void remove_tree(const char *path);
 
 class TemporaryDirectory {

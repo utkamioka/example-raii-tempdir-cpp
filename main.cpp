@@ -23,6 +23,10 @@ int main() {
         std::ofstream("2/1/002.txt").close();
         std::ofstream("3.txt").close();
 
+        for (const auto& file : filesystem_utils::list(temp_dir.path())) {
+            std::cout << temp_dir.path() << "/" << file << std::endl;
+        }
+
         std::cout << "---- end of block ----" << std::endl;
     } catch (std::system_error &e) {
         std::cout << "received exception: (std::system_error) " << e.what() << std::endl;

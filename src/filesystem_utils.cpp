@@ -1,10 +1,13 @@
 #include <sstream>
+#include <fstream>
+#include <iostream>
 #include <string>
 #include <cstring>
 #include <memory>
 #include <stdexcept>
 #include <unistd.h>
 #include <dirent.h>
+#include <set>
 #include "filesystem_utils.h"
 
 namespace filesystem_utils {
@@ -38,6 +41,9 @@ std::string _get_real_path(const char *path) noexcept {
 
 }  // namespace *private functions*
 
+bool exists(const char *path) {
+    return std::ifstream(path).is_open();
+}
 
 std::string get_current_working_directory() {
     auto cwd = std::unique_ptr<char, PtrFuncFree>(get_current_dir_name(), str_free);
@@ -72,6 +78,28 @@ std::string make_temporary_directory(const char *path) {
     return _template;
 }
 
+std::set<std::string> list(const char* path) {
+    const auto is_current_dir = [](const char *path) { return std::strcmp(path, ".") == 0; };
+    const auto is_parent_dir = [](const char *path) { return std::strcmp(path, "..") == 0; };
+
+    std::set<std::string> entries;
+
+    DIR *dir;
+    if ((dir = opendir(path)) != nullptr) {
+        struct dirent *entry;
+        while ((entry = readdir(dir)) != nullptr) {
+            if (!is_current_dir(entry->d_name) and !is_parent_dir(entry->d_name)) {
+                entries.emplace(entry->d_name);
+            }
+        }
+        closedir(dir);
+    } else {
+        throw std::system_error(errno, std::generic_category(), _get_real_path(path));
+    }
+
+    return entries;
+}
+
 void remove_tree(const char *path) {
 #ifdef DEBUG
     {
@@ -80,8 +108,8 @@ void remove_tree(const char *path) {
     }
 #endif //DEBUG
 
-    auto is_current_dir = [](const char *path) { return strcmp(path, ".") == 0; };
-    auto is_parent_dir = [](const char *path) { return strcmp(path, "..") == 0; };
+    const auto is_current_dir = [](const char *path) { return std::strcmp(path, ".") == 0; };
+    const auto is_parent_dir = [](const char *path) { return std::strcmp(path, "..") == 0; };
 
     DIR *dir;
     if ((dir = opendir(path)) != nullptr) {
